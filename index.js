@@ -58,6 +58,12 @@ async function run() {
       res.send({count});
     })
 
+    app.get('/orderedFoods', async (req, res) => {
+      const cursor = orderedCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
     app.post('/orderedFoods', async (req, res) => {
       const newOrder = req.body;
       const result = await orderedCollection.insertOne(newOrder);
