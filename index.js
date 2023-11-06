@@ -27,6 +27,7 @@ async function run() {
     await client.connect();
 
     const foodsCollection = client.db('foodsData').collection('foods');
+    const orderedCollection = client.db('foodsData').collection('orderedFoods');
 
     app.get('/foods', async (req, res) => {
       const page = parseInt(req.query.page);
@@ -55,6 +56,12 @@ async function run() {
     app.get('/foodsCount', async (req, res) => {
       const count = await foodsCollection.estimatedDocumentCount();
       res.send({count});
+    })
+
+    app.post('/orderedFoods', async (req, res) => {
+      const newOrder = req.body;
+      const result = await orderedCollection.insertOne(newOrder);
+      res.send(result);
     })
 
     // Send a ping to confirm a successful connection
