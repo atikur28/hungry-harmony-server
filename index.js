@@ -53,6 +53,27 @@ async function run() {
       res.send(result);
     })
 
+    app.put('/foods/:id', async (req, res) => {
+      const id = req.params.id;
+      const filter = {_id: new ObjectId(id)};
+      const options = {upsert: true};
+      const updateFood = req.body;
+      const updateDoc = {
+        $set: {
+          food_name: updateFood.food_name,
+          food_image: updateFood.food_image,
+          food_category: updateFood.food_category,
+          price: updateFood.price,
+          quantity: updateFood.quantity,
+          description: updateFood.description,
+          provider: updateFood.provider,
+          providerEmail: updateFood.providerEmail
+        }
+      };
+      const result = await foodsCollection.updateOne(filter, updateDoc, options);
+      res.send(result);
+    })
+
     app.get('/foodsCount', async (req, res) => {
       const count = await foodsCollection.estimatedDocumentCount();
       res.send({count});
