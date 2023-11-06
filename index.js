@@ -46,6 +46,12 @@ async function run() {
       res.send(result);
     })
 
+    app.post('/foods', async (req, res) => {
+      const newFood = req.body;
+      const result = await foodsCollection.insertOne(newFood);
+      res.send(result);
+    })
+
     app.get('/foodsCount', async (req, res) => {
       const count = await foodsCollection.estimatedDocumentCount();
       res.send({count});
