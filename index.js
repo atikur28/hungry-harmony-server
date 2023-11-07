@@ -28,6 +28,7 @@ async function run() {
 
     const foodsCollection = client.db('foodsData').collection('foods');
     const orderedCollection = client.db('foodsData').collection('orderedFoods');
+    const usersCollection = client.db('foodsData').collection('users');
 
     app.get('/foods', async (req, res) => {
       const page = parseInt(req.query.page);
@@ -95,6 +96,18 @@ async function run() {
       const id = req.params.id;
       const query = {_id: new ObjectId(id)};
       const result = await orderedCollection.deleteOne(query);
+      res.send(result);
+    })
+
+    app.get('/users', async (req, res) => {
+      const cursor = usersCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    })
+
+    app.post('/users', async (req, res) => {
+      const user = req.body;
+      const result = await usersCollection.insertOne(user);
       res.send(result);
     })
 
