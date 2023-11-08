@@ -1,24 +1,13 @@
 const express = require("express");
 const cors = require("cors");
-const jwt = require("jsonwebtoken");
-const cookieParser = require("cookie-parser");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware
-app.use(
-  cors({
-    origin: [
-      'https://hungry-harmony.web.app/',
-      'https://hungry-harmony.firebaseapp.com'
-    ],
-    credentials: true,
-  })
-);
+app.use(cors());
 app.use(express.json());
-app.use(cookieParser());
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.7mrpr8s.mongodb.net/?retryWrites=true&w=majority`;
 
@@ -31,24 +20,6 @@ const client = new MongoClient(uri, {
   },
 });
 
-// middleware
-const logger = (req, res, next) => {
-  console.log(req.method, req.url);
-  next();
-};
-const verifyToken = (req, res, next) => {
-  const token = req?.cookies?.token;
-  if (!token) {
-    return res.status(401).send({ message: "Unauthorized access!" });
-  }
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (error, decoded) => {
-    if (error) {
-      return res.status(401).send({ message: "Unauthorized access!" });
-    }
-    req.user = decoded;
-    next();
-  });
-};
 
 async function run() {
   try {
@@ -58,26 +29,6 @@ async function run() {
     const foodsCollection = client.db("foodsData").collection("foods");
     const orderedCollection = client.db("foodsData").collection("orderedFoods");
     const usersCollection = client.db("foodsData").collection("users");
-
-    app.post("/jwt", async (req, res) => {
-      const user = req.body;
-      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
-        expiresIn: "5h",
-      });
-      res
-        .cookie("token", token, {
-          httpOnly: true,
-          secure: true,
-          sameSite: "none",
-        })
-        .send({ success: true });
-    });
-
-    app.post("/signOut", async (req, res) => {
-      const user = req.body;
-      console.log("signOut", user);
-      res.clearCookie("token", { maxAge: 0 }).send({ success: true });
-    });
 
     app.get("/foods", async (req, res) => {
       const page = parseInt(req.query.page);
@@ -146,15 +97,9 @@ async function run() {
       res.send({ count });
     });
 
-    app.get("/orderedFoods", logger, verifyToken, async (req, res) => {
-      if(req.user.email !== req.query.email){
-        return res.status(403).send({message: 'forbidden access!'})
-      }
-      let query = {};
-      if (req.query?.email) {
-        query = { buyerEmail: req.query.email };
-      }
-      const result = await orderedCollection.find(query).toArray();
+    app.get("/orderedFoods", async (req, res) => {
+      const cursor = orderedCollection.find();
+      const result = await cursor.toArray();
       res.send(result);
     });
 
